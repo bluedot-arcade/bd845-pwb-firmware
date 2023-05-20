@@ -1,3 +1,9 @@
+# PlatformIO
+.pio
+
+# VSCode
+.vscode
+
 # Eclipse
 .metadata
 bin/
