@@ -24,10 +24,7 @@ The DDR Stage IO communication protocol has not been yet implemented.
 * [/inc/](/inc/) - contains project include files.
 * [/lib/](/lib/) - contains project specific private libraries.
 * [/src/](/src/) - contains project source files.
-* [/test/](/test/## About the project
-
-This project uses [PlatformIO][PlatformIO Docs] with the Stm32Cube framework
-) - contains project test files.
+* [/test/](/test/) - contains project test files.
 * [/bd845-pwb.ioc](/bd845-pwb.ioc) - the STM32CubeMX project file.
 * [/platformio.ini](/platformio.ini) - the PlatformIO project configuration file.
 
