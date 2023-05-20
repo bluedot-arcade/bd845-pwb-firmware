@@ -24,9 +24,42 @@ The DDR Stage IO communication protocol has not been yet implemented.
 * [/inc/](/inc/) - contains project include files.
 * [/lib/](/lib/) - contains project specific private libraries.
 * [/src/](/src/) - contains project source files.
-* [/test/](/test/) - contains project test files.
+* [/test/](/test/## About the project
+
+This project uses [PlatformIO][PlatformIO Docs] with the Stm32Cube framework
+) - contains project test files.
 * [/bd845-pwb.ioc](/bd845-pwb.ioc) - the STM32CubeMX project file.
 * [/platformio.ini](/platformio.ini) - the PlatformIO project configuration file.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## How to build and upload
+
+This project uses PlatformIO to build and upload the project. Only the PlatformIO Core CLI is required but consider installing the PlatformIO IDE for a better user experience.
+
+The following is the recommended way to build and upload the firmware.
+
+1. [Install PlatformIO Core][PlatformIO Core Docs]
+
+2. Clone the repository 
+    ```bash
+    git clone https://github.com/bluedot-arcade/bd845-pwb-firmware
+    ```
+
+3. Navigate to the root of the project
+   ```bash
+    cd bd845-pwb-firmware
+    ```
+
+4. Build the project. Binaries will be created inside the `.pio` folder.
+    ```bash
+    platformio run
+    ```
+    
+5. Upload the project to the board
+    ```bash
+    platformio run --target upload
+    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -37,3 +70,5 @@ Distributed under the MIT License. See [LICENSE.txt] for more information.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 [LICENSE.txt]: /LICENSE.txt
+[PlatformIO Core Docs]: https://docs.platformio.org/en/latest/core/index.html
+[PlatformIO Docs]: https://docs.platformio.org/
