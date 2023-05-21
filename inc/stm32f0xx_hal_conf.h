@@ -1,4 +1,3 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file    stm32f0xx_hal_conf.h
@@ -6,7 +5,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2016 STMicroelectronics.
+  * Copyright (c) 2016 BlueDot Arcade.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -15,9 +14,7 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F0xx_HAL_CONF_H
 #define __STM32F0xx_HAL_CONF_H
 
@@ -26,6 +23,7 @@
 #endif
 
 /* Exported types ------------------------------------------------------------*/
+
 /* Exported constants --------------------------------------------------------*/
 
 /* ########################## Module Selection ############################## */
@@ -185,6 +183,7 @@
 /* #define USE_FULL_ASSERT   1U */
 
 /* Includes ------------------------------------------------------------------*/
+
 /**
   * @brief Include module's header file
   */
@@ -298,6 +297,7 @@
 #endif /* HAL_WWDG_MODULE_ENABLED */
 
 /* Exported macro ------------------------------------------------------------*/
+
 #ifdef  USE_FULL_ASSERT
 /**
   * @brief  The assert_param macro is used for function's parameters check.

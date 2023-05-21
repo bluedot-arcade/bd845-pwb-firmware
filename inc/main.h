@@ -1,4 +1,3 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.h
@@ -7,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2023 STMicroelectronics.
+  * Copyright (c) 2023 BlueDot Arcade.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -16,9 +15,7 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MAIN_H
 #define __MAIN_H
 
@@ -27,38 +24,27 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+
 #include "stm32f0xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+
 #include "shift_reg.h"
 
-/* USER CODE END Includes */
-
 /* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
-
-/* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN EC */
-
-/* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
-
-/* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
 
-/* USER CODE BEGIN EFP */
+void Error_Handler(void);
 void Before_IncTick_Handler(void);
 void After_IncTick_Handler(void);
-/* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+
 #define PADS_SER_Pin GPIO_PIN_13
 #define PADS_SER_GPIO_Port GPIOC
 #define PADS_RCLK_Pin GPIO_PIN_14
@@ -130,7 +116,6 @@ void After_IncTick_Handler(void);
 #define COMM_FL1_Pin GPIO_PIN_9
 #define COMM_FL1_GPIO_Port GPIOB
 
-/* USER CODE BEGIN Private defines */
 #define CH1_S1 0x00000001U
 #define CH1_S2 0x00000002U
 #define CH1_S3 0x00000004U
@@ -178,7 +163,6 @@ void After_IncTick_Handler(void);
 #define CH4_LIGHT  0x04U
 #define CH5_LIGHT  0x02U
 #define STATUS_LED 0x01U
-/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }
