@@ -47,7 +47,6 @@ void ShiftReg_Latch(ShiftReg_TypeDef* ShiftReg)
   HAL_GPIO_WritePin(ShiftReg->Rclk_Port, ShiftReg->Rclk_Pin, GPIO_PIN_RESET);
 }
 
-/** Shift a byte and subsequently latch the register. */
 void ShiftReg_WriteByte(ShiftReg_TypeDef* ShiftReg, uint8_t data)
 {
   ShiftReg_ShiftByte(ShiftReg, data);
