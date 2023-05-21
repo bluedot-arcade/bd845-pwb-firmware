@@ -43,15 +43,19 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+ShiftReg_TypeDef Pads_ShiftReg;
+ShiftReg_TypeDef Lights_ShiftReg;
+
 uint32_t Inputs_State = 0;
 uint8_t Lights_State = 0;
 uint8_t Pads_State = 0;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+void Init_Lights_Register(void);
+void Init_Pads_Register(void);
 void Poll_Inputs(void);
 void Update_Lights(void);
 void ShiftOut_Lights(uint8_t data);
@@ -92,6 +96,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+
+  Init_Lights_Register();
+  Init_Pads_Register();
 
   /* USER CODE END 2 */
 
@@ -146,6 +153,34 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
+void Init_Lights_Register(void) {
+  ShiftReg_TypeDef ShiftReg = {0};
+
+  ShiftReg.BitOrder = MSBFIRST;
+  ShiftReg.Ser_Port = LIGHTS_SER_GPIO_Port;
+  ShiftReg.Ser_Pin = LIGHTS_SER_Pin;
+  ShiftReg.Rclk_Port = LIGHTS_RCLK_GPIO_Port;
+  ShiftReg.Rclk_Pin = LIGHTS_RCLK_Pin;
+  ShiftReg.Srclk_Port = LIGHTS_SRCLK_GPIO_Port;
+  ShiftReg.Srclk_Pin = LIGHTS_SRCLK_Pin;
+
+  Lights_ShiftReg = ShiftReg;
+}
+
+void Init_Pads_Register(void) {
+  ShiftReg_TypeDef ShiftReg = {0};
+
+  ShiftReg.BitOrder = MSBFIRST;
+  ShiftReg.Ser_Port = PADS_SER_GPIO_Port;
+  ShiftReg.Ser_Pin = PADS_SER_Pin;
+  ShiftReg.Rclk_Port = PADS_RCLK_GPIO_Port;
+  ShiftReg.Rclk_Pin = PADS_RCLK_Pin;
+  ShiftReg.Srclk_Port = PADS_SRCLK_GPIO_Port;
+  ShiftReg.Srclk_Pin = PADS_SRCLK_Pin;
+
+  Pads_ShiftReg = ShiftReg;
+}
+
 void Poll_Inputs(void) 
 {
   uint32_t State = 0;
@@ -181,12 +216,12 @@ void Poll_Inputs(void)
   State |= HAL_GPIO_ReadPin(CH5_S4_GPIO_Port, CH5_S4_Pin) << 19;
 
   //Poll COMM states
-	State |= HAL_GPIO_ReadPin(COMM_FL1_GPIO_Port, COMM_FL1_GPIO_Port) << 20;
-	State |= HAL_GPIO_ReadPin(COMM_FL2_GPIO_Port, COMM_FL2_GPIO_Port) << 21;
-	State |= HAL_GPIO_ReadPin(COMM_FL3_GPIO_Port, COMM_FL3_GPIO_Port) << 22;
-	State |= HAL_GPIO_ReadPin(COMM_FL4_GPIO_Port, COMM_FL4_GPIO_Port) << 23;
-	State |= HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_GPIO_Port) << 24;
-	State |= HAL_GPIO_ReadPin(COMM_TEST_GPIO_Port, COMM_TEST_GPIO_Port) << 25;
+	State |= HAL_GPIO_ReadPin(COMM_FL1_GPIO_Port, COMM_FL1_Pin) << 20;
+	State |= HAL_GPIO_ReadPin(COMM_FL2_GPIO_Port, COMM_FL2_Pin) << 21;
+	State |= HAL_GPIO_ReadPin(COMM_FL3_GPIO_Port, COMM_FL3_Pin) << 22;
+	State |= HAL_GPIO_ReadPin(COMM_FL4_GPIO_Port, COMM_FL4_Pin) << 23;
+	State |= HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin) << 24;
+	State |= HAL_GPIO_ReadPin(COMM_TEST_GPIO_Port, COMM_TEST_Pin) << 25;
 
   //Poll OPT states
 	State |= ~HAL_GPIO_ReadPin(OPT_LIGHT_GPIO_Port, OPT_LIGHT_Pin) << 26;
@@ -209,25 +244,19 @@ void Update_Lights(void)
 
   Lights_State = State;
 
-  ShiftOut_Lights(Lights_State);
+  ShiftReg_WriteByte(&Lights_ShiftReg, Lights_State);
 }
 
-void ShiftOut_Lights(uint8_t data)
+void Before_IncTick_Handler(void) 
 {
-	//MSBFirst
-	for(int8_t i = 7; i >= 0; i--)
-	{
-		HAL_GPIO_WritePin(LIGHTS_SER_GPIO_Port, LIGHTS_SER_Pin, (data >> i) & 0x01);
-
-		//Shift
-		HAL_GPIO_WritePin(LIGHTS_SRCLK_GPIO_Port, LIGHTS_SRCLK_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(LIGHTS_SRCLK_GPIO_Port, LIGHTS_SRCLK_Pin, GPIO_PIN_RESET);
-	}
-
-	// Latch
-	HAL_GPIO_WritePin(LIGHTS_RCLK_GPIO_Port, LIGHTS_RCLK_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(LIGHTS_RCLK_GPIO_Port, LIGHTS_RCLK_Pin, GPIO_PIN_RESET);
+  // Empty
 }
+
+void After_IncTick_Handler(void)
+{
+  //TODO
+}
+
 /* USER CODE END 4 */
 
 /**
@@ -242,10 +271,10 @@ void Error_Handler(void)
   while (1)
   {
     //Blink status LED indefinitely
-	  ShiftOut_Lights(0x00);
-	  HAL_Delay(200);
-	  ShiftOut_Lights(STATUS_LED);
-	  HAL_Delay(200);
+	  ShiftReg_WriteByte(&Lights_ShiftReg, 0x00);
+	  HAL_Delay(500);
+	  ShiftReg_WriteByte(&Lights_ShiftReg, 0x00);
+	  HAL_Delay(500);
   }
   /* USER CODE END Error_Handler_Debug */
 }

@@ -125,11 +125,11 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
+  Before_IncTick_Handler();
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+  After_IncTick_Handler();
   /* USER CODE END SysTick_IRQn 1 */
 }
 
