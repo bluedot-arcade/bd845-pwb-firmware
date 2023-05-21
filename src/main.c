@@ -54,8 +54,8 @@ uint8_t Pads_State = 0;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void Init_Lights_Register(void);
-void Init_Pads_Register(void);
+void Lights_Register_Init(void);
+void Pads_Register_Init(void);
 void Poll_Inputs(void);
 void Update_Lights(void);
 void ShiftOut_Lights(uint8_t data);
@@ -97,8 +97,8 @@ int main(void)
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
 
-  Init_Lights_Register();
-  Init_Pads_Register();
+  Lights_Register_Init();
+  Pads_Register_Init();
 
   /* USER CODE END 2 */
 
@@ -153,7 +153,7 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
-void Init_Lights_Register(void) {
+void Lights_Register_Init(void) {
   ShiftReg_TypeDef ShiftReg = {0};
 
   ShiftReg.BitOrder = MSBFIRST;
@@ -168,7 +168,7 @@ void Init_Lights_Register(void) {
   Lights_ShiftReg = ShiftReg;
 }
 
-void Init_Pads_Register(void) {
+void Pads_Register_Init(void) {
   ShiftReg_TypeDef ShiftReg = {0};
 
   ShiftReg.BitOrder = MSBFIRST;
