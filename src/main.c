@@ -163,6 +163,7 @@ void Init_Lights_Register(void) {
   ShiftReg.Rclk_Pin = LIGHTS_RCLK_Pin;
   ShiftReg.Srclk_Port = LIGHTS_SRCLK_GPIO_Port;
   ShiftReg.Srclk_Pin = LIGHTS_SRCLK_Pin;
+  ShiftReg_Init(&ShiftReg);
 
   Lights_ShiftReg = ShiftReg;
 }
@@ -177,6 +178,7 @@ void Init_Pads_Register(void) {
   ShiftReg.Rclk_Pin = PADS_RCLK_Pin;
   ShiftReg.Srclk_Port = PADS_SRCLK_GPIO_Port;
   ShiftReg.Srclk_Pin = PADS_SRCLK_Pin;
+  ShiftReg_Init(&ShiftReg);
 
   Pads_ShiftReg = ShiftReg;
 }

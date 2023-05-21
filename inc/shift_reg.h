@@ -45,6 +45,8 @@ typedef struct {
 
 /* Exported functions prototypes ---------------------------------------------*/
 
+void ShiftReg_Init(ShiftReg_TypeDef* ShiftReg);
+
 void ShiftReg_ShiftBit(ShiftReg_TypeDef* ShiftReg, uint8_t bit);
 
 void ShiftReg_ShiftByte(ShiftReg_TypeDef* ShiftReg, uint8_t data);

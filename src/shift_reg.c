@@ -16,6 +16,13 @@
   */
 #include "shift_reg.h"
 
+void ShiftReg_Init(ShiftReg_TypeDef* ShiftReg)
+{
+  HAL_GPIO_WritePin(ShiftReg->Ser_Port, ShiftReg->Ser_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(ShiftReg->Srclk_Port, ShiftReg->Srclk_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(ShiftReg->Rclk_Port, ShiftReg->Rclk_Pin, GPIO_PIN_RESET);
+}
+
 void ShiftReg_ShiftBit(ShiftReg_TypeDef* ShiftReg, uint8_t bit)
 {
   HAL_GPIO_WritePin(ShiftReg->Ser_Port, ShiftReg->Ser_Pin, bit & 0x01);
