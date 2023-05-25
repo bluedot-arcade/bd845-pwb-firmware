@@ -20,31 +20,31 @@
 #include "main.h"
 #include "gpio.h"
 
-/* Private includes ----------------------------------------------------------*/
-
 /* Private typedef -----------------------------------------------------------*/
 
 /* Private define ------------------------------------------------------------*/
 
 /* Private macro -------------------------------------------------------------*/
 
+/* Check if an option is enabled */
+#define IS_OPT_ON(opt) (Inputs_State & opt) 
+
 /* Private variables ---------------------------------------------------------*/
 
 ShiftReg_TypeDef Pads_ShiftReg;
 ShiftReg_TypeDef Lights_ShiftReg;
-
 uint32_t Inputs_State = 0;
 uint8_t Lights_State = 0;
-uint8_t Pads_State = 0;
+uint8_t Pads_State = 0; 
 
 /* Private function prototypes -----------------------------------------------*/
 
 void SystemClock_Config(void);
 void Lights_Register_Init(void);
 void Pads_Register_Init(void);
-void Poll_Inputs(void);
-void Update_Lights(void);
-void ShiftOut_Lights(uint8_t data);
+void Inputs_Poll(void);
+void Pads_Update(void);
+void Lights_Update(void);
 
 /* Private user code ---------------------------------------------------------*/
 
@@ -68,8 +68,9 @@ int main(void)
 
   while (1)
   {
-    Poll_Inputs();
-    Update_Lights();
+    Inputs_Poll();
+    Pads_Update();
+    Lights_Update();
   }
 }
 
@@ -110,6 +111,10 @@ void SystemClock_Config(void)
   }
 }
 
+/**
+  * @brief Init lights shift register.
+  * @retval None
+  */
 void Lights_Register_Init(void) {
   ShiftReg_TypeDef ShiftReg = {0};
 
@@ -125,6 +130,10 @@ void Lights_Register_Init(void) {
   Lights_ShiftReg = ShiftReg;
 }
 
+/**
+  * @brief Init pads shift register.
+  * @retval None
+  */
 void Pads_Register_Init(void) {
   ShiftReg_TypeDef ShiftReg = {0};
 
@@ -140,7 +149,11 @@ void Pads_Register_Init(void) {
   Pads_ShiftReg = ShiftReg;
 }
 
-void Poll_Inputs(void) 
+/**
+  * @brief Poll sensors, comms and options.
+  * @retval None
+  */
+void Inputs_Poll(void) 
 {
   uint32_t State = 0;
 
@@ -190,30 +203,66 @@ void Poll_Inputs(void)
   Inputs_State = ~State;
 }
 
-void Update_Lights(void)
+/**
+  * @brief Update the pads output registers.
+  * @retval None
+  */
+void Pads_Update(void)
 {
   uint8_t State = 0;
 
-  if(Inputs_State & OPT_LIGHT) {
-    if(Inputs_State & CH1_OR)
-    {
-      State |= STATUS_LED;
-    }
+  State |= (Inputs_State & CH1_OR) ? CH1_PAD : 0;
+  State |= (Inputs_State & CH2_OR) ? CH2_PAD : 0;
+  State |= (Inputs_State & CH3_OR) ? CH3_PAD : 0;
+  State |= (Inputs_State & CH4_OR) ? CH4_PAD : 0;
+  State |= (Inputs_State & CH5_OR) ? CH5_PAD : 0;
+
+  Pads_State = State;
+  ShiftReg_WriteByte(&Pads_ShiftReg, Pads_State);
+}
+
+/**
+  * @brief Update the lights output registers.
+  * @retval None
+  */
+void Lights_Update(void)
+{
+  uint8_t State = 0;
+
+  if(IS_OPT_ON(OPT_LIGHT)) {
+    State |= (Inputs_State & CH1_OR) ? CH1_LIGHT : 0;
+    State |= (Inputs_State & CH2_OR) ? CH2_LIGHT : 0;
+    State |= (Inputs_State & CH3_OR) ? CH3_LIGHT : 0;
+    State |= (Inputs_State & CH4_OR) ? CH4_LIGHT : 0;
+    State |= (Inputs_State & CH5_OR) ? CH5_LIGHT : 0;
+  } else {
+    State |= (Inputs_State & COMM_FL1) ? CH1_LIGHT : 0;
+    State |= (Inputs_State & COMM_FL2) ? CH2_LIGHT : 0;
+    State |= (Inputs_State & COMM_FL3) ? CH3_LIGHT : 0;
+    State |= (Inputs_State & COMM_FL4) ? CH4_LIGHT : 0;
+    State |= (Inputs_State & COMM_FL5) ? CH5_LIGHT : 0;
   }
 
   Lights_State = State;
-
   ShiftReg_WriteByte(&Lights_ShiftReg, Lights_State);
 }
 
+/**
+  * @brief Called before the SysTick increment.
+  * @retval None
+  */
 void Before_IncTick_Handler(void) 
 {
-  // Empty
+  // Empty4
 }
 
+/**
+  * @brief Called after the SysTick increment.
+  * @retval None
+  */
 void After_IncTick_Handler(void)
 {
-  //TODO
+  //TODO Implement debounce mechanism
 }
 
 /**
@@ -228,7 +277,7 @@ void Error_Handler(void)
     //Blink status LED indefinitely
 	  ShiftReg_WriteByte(&Lights_ShiftReg, 0x00);
 	  HAL_Delay(500);
-	  ShiftReg_WriteByte(&Lights_ShiftReg, 0x00);
+	  ShiftReg_WriteByte(&Lights_ShiftReg, STATUS_LED);
 	  HAL_Delay(500);
   }
 }

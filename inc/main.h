@@ -164,6 +164,12 @@ void After_IncTick_Handler(void);
 #define CH5_LIGHT  0x02U
 #define STATUS_LED 0x01U
 
+#define CH1_PAD 0x10U
+#define CH2_PAD 0x08U
+#define CH3_PAD 0x04U
+#define CH4_PAD 0x02U
+#define CH5_PAD 0x01U
+
 #ifdef __cplusplus
 }
 #endif
