@@ -168,6 +168,9 @@ void Error_Handler(void);
 #define CH4_PAD 0x02U
 #define CH5_PAD 0x01U
 
+/* Input debouncing ticks of 100uS */
+#define DEBOUNCE_TICKS 40
+
 #ifdef __cplusplus
 }
 #endif

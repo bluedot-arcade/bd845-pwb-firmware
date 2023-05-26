@@ -29,6 +29,11 @@
 
 /* Check if an option is enabled */
 #define IS_OPT_ON(opt) (Inputs_State & opt) 
+#define CH1_COUNTER Pads_Counters[0]
+#define CH2_COUNTER Pads_Counters[1]
+#define CH3_COUNTER Pads_Counters[2]
+#define CH4_COUNTER Pads_Counters[3]
+#define CH5_COUNTER Pads_Counters[4]
 
 /* Private variables ---------------------------------------------------------*/
 
@@ -36,7 +41,8 @@ ShiftReg_TypeDef Pads_ShiftReg;
 ShiftReg_TypeDef Lights_ShiftReg;
 uint32_t Inputs_State = 0;
 uint8_t Lights_State = 0;
-uint8_t Pads_State = 0; 
+uint8_t Pads_State = 0;
+uint8_t Pads_Counters[5];
 
 /* Private function prototypes -----------------------------------------------*/
 
@@ -193,7 +199,7 @@ void Inputs_Poll(void)
   State |= HAL_GPIO_ReadPin(CH5_S3_GPIO_Port, CH5_S3_Pin) << 18;
   State |= HAL_GPIO_ReadPin(CH5_S4_GPIO_Port, CH5_S4_Pin) << 19;
 
-  //Poll COMM states
+  // Poll COMM states
 	State |= HAL_GPIO_ReadPin(COMM_FL1_GPIO_Port, COMM_FL1_Pin) << 20;
 	State |= HAL_GPIO_ReadPin(COMM_FL2_GPIO_Port, COMM_FL2_Pin) << 21;
 	State |= HAL_GPIO_ReadPin(COMM_FL3_GPIO_Port, COMM_FL3_Pin) << 22;
@@ -201,12 +207,16 @@ void Inputs_Poll(void)
 	State |= HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin) << 24;
 	State |= HAL_GPIO_ReadPin(COMM_TEST_GPIO_Port, COMM_TEST_Pin) << 25;
 
-  //Poll OPT states
-	State |= ~HAL_GPIO_ReadPin(OPT_LIGHT_GPIO_Port, OPT_LIGHT_Pin) << 26;
-	State |= ~HAL_GPIO_ReadPin(OPT_DEBOUNCE_GPIO_Port, OPT_DEBOUNCE_Pin) << 27;
-	State |= ~HAL_GPIO_ReadPin(OPT_LEGACY_GPIO_Port, OPT_LEGACY_Pin) << 28;
+  // All inputs except OPT are active low
+  // so they need to be inverted.
+  State = ~State & 0x03FFFFFF; 
 
-  Inputs_State = ~State;
+  // Poll OPT states
+	State |= HAL_GPIO_ReadPin(OPT_LIGHT_GPIO_Port, OPT_LIGHT_Pin) << 26;
+	State |= HAL_GPIO_ReadPin(OPT_DEBOUNCE_GPIO_Port, OPT_DEBOUNCE_Pin) << 27;
+	State |= HAL_GPIO_ReadPin(OPT_LEGACY_GPIO_Port, OPT_LEGACY_Pin) << 28;
+
+  Inputs_State = State;
 }
 
 /**
@@ -217,11 +227,28 @@ void Pads_Update(void)
 {
   uint8_t State = 0;
 
-  State |= (Inputs_State & CH1_OR) ? CH1_PAD : 0;
-  State |= (Inputs_State & CH2_OR) ? CH2_PAD : 0;
-  State |= (Inputs_State & CH3_OR) ? CH3_PAD : 0;
-  State |= (Inputs_State & CH4_OR) ? CH4_PAD : 0;
-  State |= (Inputs_State & CH5_OR) ? CH5_PAD : 0;
+  if(IS_OPT_ON(OPT_DEBOUNCE)) 
+  {
+    if(Inputs_State & CH1_OR) CH1_COUNTER = DEBOUNCE_TICKS;
+    if(Inputs_State & CH2_OR) CH2_COUNTER = DEBOUNCE_TICKS;
+    if(Inputs_State & CH3_OR) CH3_COUNTER = DEBOUNCE_TICKS;
+    if(Inputs_State & CH4_OR) CH4_COUNTER = DEBOUNCE_TICKS;
+    if(Inputs_State & CH5_OR) CH5_COUNTER = DEBOUNCE_TICKS;
+
+    State |= CH1_COUNTER > 0 ? CH1_PAD : 0;
+    State |= CH2_COUNTER > 0 ? CH2_PAD : 0;
+    State |= CH3_COUNTER > 0 ? CH3_PAD : 0;
+    State |= CH4_COUNTER > 0 ? CH4_PAD : 0;
+    State |= CH5_COUNTER > 0 ? CH5_PAD : 0;
+  }
+  else
+  {
+    State |= (Inputs_State & CH1_OR) ? CH1_PAD : 0;
+    State |= (Inputs_State & CH2_OR) ? CH2_PAD : 0;
+    State |= (Inputs_State & CH3_OR) ? CH3_PAD : 0;
+    State |= (Inputs_State & CH4_OR) ? CH4_PAD : 0;
+    State |= (Inputs_State & CH5_OR) ? CH5_PAD : 0;
+  }
 
   Pads_State = State;
   ShiftReg_WriteByte(&Pads_ShiftReg, Pads_State);
@@ -235,13 +262,16 @@ void Lights_Update(void)
 {
   uint8_t State = 0;
 
-  if(IS_OPT_ON(OPT_LIGHT)) {
-    State |= (Inputs_State & CH1_OR) ? CH1_LIGHT : 0;
-    State |= (Inputs_State & CH2_OR) ? CH2_LIGHT : 0;
-    State |= (Inputs_State & CH3_OR) ? CH3_LIGHT : 0;
-    State |= (Inputs_State & CH4_OR) ? CH4_LIGHT : 0;
-    State |= (Inputs_State & CH5_OR) ? CH5_LIGHT : 0;
-  } else {
+  if(IS_OPT_ON(OPT_LIGHT)) 
+  {
+    State |= (Pads_State & CH1_PAD) ? CH1_LIGHT : 0;
+    State |= (Pads_State & CH2_PAD) ? CH2_LIGHT : 0;
+    State |= (Pads_State & CH3_PAD) ? CH3_LIGHT : 0;
+    State |= (Pads_State & CH4_PAD) ? CH4_LIGHT : 0;
+    State |= (Pads_State & CH5_PAD) ? CH5_LIGHT : 0;
+  } 
+  else 
+  {
     State |= (Inputs_State & COMM_FL1) ? CH1_LIGHT : 0;
     State |= (Inputs_State & COMM_FL2) ? CH2_LIGHT : 0;
     State |= (Inputs_State & COMM_FL3) ? CH3_LIGHT : 0;
@@ -249,16 +279,19 @@ void Lights_Update(void)
     State |= (Inputs_State & COMM_FL5) ? CH5_LIGHT : 0;
   }
 
-  //TODO
-  State |= Lights_State & STATUS_LED ? STATUS_LED : 0;
-
   Lights_State = State;
   ShiftReg_WriteByte(&Lights_ShiftReg, Lights_State);
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
-  //TODO Implement debouncing
+  for(uint8_t i = 0; i < 5; i++) 
+  {
+    if(Pads_Counters[i] > 0) 
+    {
+      Pads_Counters[i]--;
+    }
+  }
 }
 
 /**
