@@ -201,20 +201,20 @@ void Inputs_Poll(void)
 
   // Poll COMM states
   State |= HAL_GPIO_ReadPin(COMM_FL1_GPIO_Port, COMM_FL1_Pin) << 20;
-	State |= HAL_GPIO_ReadPin(COMM_FL2_GPIO_Port, COMM_FL2_Pin) << 21;
-	State |= HAL_GPIO_ReadPin(COMM_FL3_GPIO_Port, COMM_FL3_Pin) << 22;
-	State |= HAL_GPIO_ReadPin(COMM_FL4_GPIO_Port, COMM_FL4_Pin) << 23;
-	State |= HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin) << 24;
-	State |= HAL_GPIO_ReadPin(COMM_TEST_GPIO_Port, COMM_TEST_Pin) << 25;
+  State |= HAL_GPIO_ReadPin(COMM_FL2_GPIO_Port, COMM_FL2_Pin) << 21;
+  State |= HAL_GPIO_ReadPin(COMM_FL3_GPIO_Port, COMM_FL3_Pin) << 22;
+  State |= HAL_GPIO_ReadPin(COMM_FL4_GPIO_Port, COMM_FL4_Pin) << 23;
+  State |= HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin) << 24;
+  State |= HAL_GPIO_ReadPin(COMM_TEST_GPIO_Port, COMM_TEST_Pin) << 25;
 
   // All inputs except OPT are active low
   // so they need to be inverted.
   State = ~State & 0x03FFFFFF; 
 
   // Poll OPT states
-	State |= HAL_GPIO_ReadPin(OPT_LIGHT_GPIO_Port, OPT_LIGHT_Pin) << 26;
-	State |= HAL_GPIO_ReadPin(OPT_DEBOUNCE_GPIO_Port, OPT_DEBOUNCE_Pin) << 27;
-	State |= HAL_GPIO_ReadPin(OPT_LEGACY_GPIO_Port, OPT_LEGACY_Pin) << 28;
+  State |= HAL_GPIO_ReadPin(OPT_LIGHT_GPIO_Port, OPT_LIGHT_Pin) << 26;
+  State |= HAL_GPIO_ReadPin(OPT_DEBOUNCE_GPIO_Port, OPT_DEBOUNCE_Pin) << 27;
+  State |= HAL_GPIO_ReadPin(OPT_LEGACY_GPIO_Port, OPT_LEGACY_Pin) << 28;
 
   Inputs_State = State;
 }
@@ -304,10 +304,10 @@ void Error_Handler(void)
   while (1)
   {
     //Blink status LED indefinitely
-	  ShiftReg_WriteByte(&Lights_ShiftReg, 0x00);
-	  HAL_Delay(500);
-	  ShiftReg_WriteByte(&Lights_ShiftReg, STATUS_LED);
-	  HAL_Delay(500);
+    ShiftReg_WriteByte(&Lights_ShiftReg, 0x00);
+    HAL_Delay(500);
+    ShiftReg_WriteByte(&Lights_ShiftReg, STATUS_LED);
+    HAL_Delay(500);
   }
 }
 
