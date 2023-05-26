@@ -40,8 +40,6 @@ extern "C" {
 /* Exported functions prototypes ---------------------------------------------*/
 
 void Error_Handler(void);
-void Before_IncTick_Handler(void);
-void After_IncTick_Handler(void);
 
 /* Private defines -----------------------------------------------------------*/
 

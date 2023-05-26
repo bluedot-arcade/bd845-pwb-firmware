@@ -36,6 +36,7 @@
 
 /* External variables --------------------------------------------------------*/
 
+extern TIM_HandleTypeDef htim3;
 /******************************************************************************/
 /*           Cortex-M0 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
@@ -83,9 +84,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  Before_IncTick_Handler();
   HAL_IncTick();
-  After_IncTick_Handler();
 }
 
 /******************************************************************************/
@@ -94,3 +93,11 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f0xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles TIM3 global interrupt.
+  */
+void TIM3_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&htim3);
+}

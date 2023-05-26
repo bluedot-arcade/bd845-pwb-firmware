@@ -19,6 +19,7 @@
 
 #include "main.h"
 #include "gpio.h"
+#include "tim.h"
 
 /* Private typedef -----------------------------------------------------------*/
 
@@ -62,9 +63,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-
+  MX_TIM3_Init();
+  
+  /* Initialize shift registers */
   Lights_Register_Init();
   Pads_Register_Init();
+
+  /* Start timers */
+  TIM3_Start();
 
   while (1)
   {
@@ -243,26 +249,16 @@ void Lights_Update(void)
     State |= (Inputs_State & COMM_FL5) ? CH5_LIGHT : 0;
   }
 
+  //TODO
+  State |= Lights_State & STATUS_LED ? STATUS_LED : 0;
+
   Lights_State = State;
   ShiftReg_WriteByte(&Lights_ShiftReg, Lights_State);
 }
 
-/**
-  * @brief Called before the SysTick increment.
-  * @retval None
-  */
-void Before_IncTick_Handler(void) 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
-  // Empty4
-}
-
-/**
-  * @brief Called after the SysTick increment.
-  * @retval None
-  */
-void After_IncTick_Handler(void)
-{
-  //TODO Implement debounce mechanism
+  //TODO Implement debouncing
 }
 
 /**
