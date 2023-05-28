@@ -250,8 +250,11 @@ void Pads_Update(void)
     State |= (Inputs_State & CH5_OR) ? CH5_PAD : 0;
   }
 
-  Pads_State = State;
-  ShiftReg_WriteByte(&Pads_ShiftReg, Pads_State);
+  if(Pads_State != State)
+  {
+    Pads_State = State;
+    ShiftReg_WriteByte(&Pads_ShiftReg, Pads_State);
+  }
 }
 
 /**
@@ -279,8 +282,11 @@ void Lights_Update(void)
     State |= (Inputs_State & COMM_FL5) ? CH5_LIGHT : 0;
   }
 
-  Lights_State = State;
-  ShiftReg_WriteByte(&Lights_ShiftReg, Lights_State);
+  if(Lights_State != State)
+  {
+    Lights_State = State;
+    ShiftReg_WriteByte(&Lights_ShiftReg, Lights_State);
+  }
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
