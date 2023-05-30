@@ -42,13 +42,13 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, PADS_SER_Pin|PADS_RCLK_Pin|PADS_SRCLK_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, OUTS_SER_Pin|OUTS_RCLK_Pin|OUTS_SRCLK_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, LIGHTS_SRCLK_Pin|LIGHTS_RCLK_Pin|LIGHTS_SER_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PCPin PCPin PCPin */
-  GPIO_InitStruct.Pin = PADS_SER_Pin|PADS_RCLK_Pin|PADS_SRCLK_Pin;
+  GPIO_InitStruct.Pin = OUTS_SER_Pin|OUTS_RCLK_Pin|OUTS_SRCLK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -64,9 +64,9 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pins : PAPin PAPin PAPin PAPin
                            PAPin PAPin PAPin PAPin
                            PAPin PAPin PAPin */
-  GPIO_InitStruct.Pin = CH5_S4_Pin|CH5_S3_Pin|CH5_S2_Pin|CH5_S1_Pin
-                          |CH4_S4_Pin|CH2_S2_Pin|CH2_S1_Pin|CH1_S4_Pin
-                          |CH1_S3_Pin|CH1_S2_Pin|OPT_DEBOUNCE_Pin;
+  GPIO_InitStruct.Pin = PANEL_C_S4_Pin|PANEL_C_S3_Pin|PANEL_C_S2_Pin|PANEL_C_S1_Pin
+                          |PANEL_R_S4_Pin|PANEL_D_S2_Pin|PANEL_D_S1_Pin|PANEL_U_S4_Pin
+                          |PANEL_U_S3_Pin|PANEL_U_S2_Pin|OPT_DEBOUNCE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -75,16 +75,16 @@ void MX_GPIO_Init(void)
                            PBPin PBPin PBPin PBPin
                            PBPin PBPin PBPin PBPin
                            PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = CH4_S3_Pin|CH4_S2_Pin|CH4_S1_Pin|CH3_S4_Pin
-                          |CH3_S3_Pin|CH3_S2_Pin|CH3_S1_Pin|CH2_S4_Pin
-                          |CH2_S3_Pin|OPT_LEGACY_Pin|COMM_FL5_Pin|COMM_FL4_Pin
+  GPIO_InitStruct.Pin = PANEL_R_S3_Pin|PANEL_R_S2_Pin|PANEL_R_S1_Pin|PANEL_L_S4_Pin
+                          |PANEL_L_S3_Pin|PANEL_L_S2_Pin|PANEL_L_S1_Pin|PANEL_D_S4_Pin
+                          |PANEL_D_S3_Pin|OPT_LEGACY_Pin|COMM_FL5_Pin|COMM_FL4_Pin
                           |COMM_FL3_Pin|COMM_FL2_Pin|COMM_FL1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PFPin PFPin */
-  GPIO_InitStruct.Pin = CH1_S1_Pin|OPT_LIGHT_Pin;
+  GPIO_InitStruct.Pin = PANEL_U_S1_Pin|OPT_LIGHT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);

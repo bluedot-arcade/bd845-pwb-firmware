@@ -32,15 +32,15 @@
 
 /* Check if an option is enabled */
 #define IS_OPT_ON(opt) (Inputs_State & opt) 
-#define CH1_COUNTER Pads_Counters[0]
-#define CH2_COUNTER Pads_Counters[1]
-#define CH3_COUNTER Pads_Counters[2]
-#define CH4_COUNTER Pads_Counters[3]
-#define CH5_COUNTER Pads_Counters[4]
+#define PANEL_U_COUNTER Panel_Counters[0]
+#define PANEL_D_COUNTER Panel_Counters[1]
+#define PANEL_L_COUNTER Panel_Counters[2]
+#define PANEL_R_COUNTER Panel_Counters[3]
+#define PANEL_C_COUNTER Panel_Counters[4]
 
 /* Private consts ------------------------------------------------------------*/
 
-static const uint8_t DDR_Pads_States[] =
+static const uint8_t DDR_Outputs_States[] =
 {
   0x12, 0x00, 0x10, 0x02,
   0x12, 0x02, 0x12, 0x02,
@@ -54,9 +54,9 @@ static const uint8_t DDR_Pads_States[] =
 
 uint32_t Inputs_State = 0;
 
-ShiftReg_TypeDef Pads_ShiftReg;
-uint8_t Pads_State = 0;
-uint8_t Pads_Counters[5];
+ShiftReg_TypeDef Outputs_ShiftReg;
+uint8_t Outputs_State = 0;
+uint8_t Panel_Counters[5];
 
 ShiftReg_TypeDef Lights_ShiftReg;
 uint8_t Lights_State = 0;
@@ -172,16 +172,16 @@ void Pads_Register_Init(void) {
   ShiftReg_TypeDef ShiftReg = {0};
 
   ShiftReg.BitOrder = MSBFIRST;
-  ShiftReg.Ser_Port = PADS_SER_GPIO_Port;
-  ShiftReg.Ser_Pin = PADS_SER_Pin;
-  ShiftReg.Rclk_Port = PADS_RCLK_GPIO_Port;
-  ShiftReg.Rclk_Pin = PADS_RCLK_Pin;
-  ShiftReg.Srclk_Port = PADS_SRCLK_GPIO_Port;
-  ShiftReg.Srclk_Pin = PADS_SRCLK_Pin;
+  ShiftReg.Ser_Port = OUTPUTS_SER_GPIO_Port;
+  ShiftReg.Ser_Pin = OUTPUTS_SER_Pin;
+  ShiftReg.Rclk_Port = OUTPUTS_RCLK_GPIO_Port;
+  ShiftReg.Rclk_Pin = OUTPUTS_RCLK_Pin;
+  ShiftReg.Srclk_Port = OUTPUTS_SRCLK_GPIO_Port;
+  ShiftReg.Srclk_Pin = OUTPUTS_SRCLK_Pin;
   ShiftReg_Init(&ShiftReg);
   ShiftReg_WriteByte(&ShiftReg, 0);
 
-  Pads_ShiftReg = ShiftReg;
+  Outputs_ShiftReg = ShiftReg;
 }
 
 /**
@@ -192,35 +192,35 @@ void Inputs_Poll(void)
 {
   uint32_t State = 0;
 
-  /* Poll CH1 sensors */
-  State |= HAL_GPIO_ReadPin(CH1_S1_GPIO_Port, CH1_S1_Pin);
-  State |= HAL_GPIO_ReadPin(CH1_S2_GPIO_Port, CH1_S2_Pin) << 1;
-  State |= HAL_GPIO_ReadPin(CH1_S3_GPIO_Port, CH1_S3_Pin) << 2;
-  State |= HAL_GPIO_ReadPin(CH1_S4_GPIO_Port, CH1_S4_Pin) << 3;
+  /* Poll PANEL_U sensors */
+  State |= HAL_GPIO_ReadPin(PANEL_U_S1_GPIO_Port, PANEL_U_S1_Pin);
+  State |= HAL_GPIO_ReadPin(PANEL_U_S2_GPIO_Port, PANEL_U_S2_Pin) << 1;
+  State |= HAL_GPIO_ReadPin(PANEL_U_S3_GPIO_Port, PANEL_U_S3_Pin) << 2;
+  State |= HAL_GPIO_ReadPin(PANEL_U_S4_GPIO_Port, PANEL_U_S4_Pin) << 3;
 
-  /* Poll CH2 sensors */
-  State |= HAL_GPIO_ReadPin(CH2_S1_GPIO_Port, CH2_S1_Pin) << 4;
-  State |= HAL_GPIO_ReadPin(CH2_S2_GPIO_Port, CH2_S2_Pin) << 5;
-  State |= HAL_GPIO_ReadPin(CH2_S3_GPIO_Port, CH2_S3_Pin) << 6;
-  State |= HAL_GPIO_ReadPin(CH2_S4_GPIO_Port, CH2_S4_Pin) << 7;
+  /* Poll PANEL_D sensors */
+  State |= HAL_GPIO_ReadPin(PANEL_D_S1_GPIO_Port, PANEL_D_S1_Pin) << 4;
+  State |= HAL_GPIO_ReadPin(PANEL_D_S2_GPIO_Port, PANEL_D_S2_Pin) << 5;
+  State |= HAL_GPIO_ReadPin(PANEL_D_S3_GPIO_Port, PANEL_D_S3_Pin) << 6;
+  State |= HAL_GPIO_ReadPin(PANEL_D_S4_GPIO_Port, PANEL_D_S4_Pin) << 7;
 
-  /* Poll CH3 sensors */
-  State |= HAL_GPIO_ReadPin(CH3_S1_GPIO_Port, CH3_S1_Pin) << 8;
-  State |= HAL_GPIO_ReadPin(CH3_S2_GPIO_Port, CH3_S2_Pin) << 9;
-  State |= HAL_GPIO_ReadPin(CH3_S3_GPIO_Port, CH3_S3_Pin) << 10;
-  State |= HAL_GPIO_ReadPin(CH3_S4_GPIO_Port, CH3_S4_Pin) << 11;
+  /* Poll PANEL_L sensors */
+  State |= HAL_GPIO_ReadPin(PANEL_L_S1_GPIO_Port, PANEL_L_S1_Pin) << 8;
+  State |= HAL_GPIO_ReadPin(PANEL_L_S2_GPIO_Port, PANEL_L_S2_Pin) << 9;
+  State |= HAL_GPIO_ReadPin(PANEL_L_S3_GPIO_Port, PANEL_L_S3_Pin) << 10;
+  State |= HAL_GPIO_ReadPin(PANEL_L_S4_GPIO_Port, PANEL_L_S4_Pin) << 11;
 
-  /* Poll CH4 sensors */
-  State |= HAL_GPIO_ReadPin(CH4_S1_GPIO_Port, CH4_S1_Pin) << 12;
-  State |= HAL_GPIO_ReadPin(CH4_S2_GPIO_Port, CH4_S2_Pin) << 13;
-  State |= HAL_GPIO_ReadPin(CH4_S3_GPIO_Port, CH4_S3_Pin) << 14;
-  State |= HAL_GPIO_ReadPin(CH4_S4_GPIO_Port, CH4_S4_Pin) << 15;
+  /* Poll PANEL_R sensors */
+  State |= HAL_GPIO_ReadPin(PANEL_R_S1_GPIO_Port, PANEL_R_S1_Pin) << 12;
+  State |= HAL_GPIO_ReadPin(PANEL_R_S2_GPIO_Port, PANEL_R_S2_Pin) << 13;
+  State |= HAL_GPIO_ReadPin(PANEL_R_S3_GPIO_Port, PANEL_R_S3_Pin) << 14;
+  State |= HAL_GPIO_ReadPin(PANEL_R_S4_GPIO_Port, PANEL_R_S4_Pin) << 15;
 
-  /* Poll CH5 sensors */
-  State |= HAL_GPIO_ReadPin(CH5_S1_GPIO_Port, CH5_S1_Pin) << 16;
-  State |= HAL_GPIO_ReadPin(CH5_S2_GPIO_Port, CH5_S2_Pin) << 17;
-  State |= HAL_GPIO_ReadPin(CH5_S3_GPIO_Port, CH5_S3_Pin) << 18;
-  State |= HAL_GPIO_ReadPin(CH5_S4_GPIO_Port, CH5_S4_Pin) << 19;
+  /* Poll PANEL_C sensors */
+  State |= HAL_GPIO_ReadPin(PANEL_C_S1_GPIO_Port, PANEL_C_S1_Pin) << 16;
+  State |= HAL_GPIO_ReadPin(PANEL_C_S2_GPIO_Port, PANEL_C_S2_Pin) << 17;
+  State |= HAL_GPIO_ReadPin(PANEL_C_S3_GPIO_Port, PANEL_C_S3_Pin) << 18;
+  State |= HAL_GPIO_ReadPin(PANEL_C_S4_GPIO_Port, PANEL_C_S4_Pin) << 19;
 
   /* Poll COMM states */
   State |= HAL_GPIO_ReadPin(COMM_FL1_GPIO_Port, COMM_FL1_Pin) << 20;
@@ -255,31 +255,31 @@ void Pads_Update(void)
 
   if(IS_OPT_ON(OPT_DEBOUNCE)) 
   {
-    if(Inputs_State & CH1_OR) CH1_COUNTER = DEBOUNCE_TICKS;
-    if(Inputs_State & CH2_OR) CH2_COUNTER = DEBOUNCE_TICKS;
-    if(Inputs_State & CH3_OR) CH3_COUNTER = DEBOUNCE_TICKS;
-    if(Inputs_State & CH4_OR) CH4_COUNTER = DEBOUNCE_TICKS;
-    if(Inputs_State & CH5_OR) CH5_COUNTER = DEBOUNCE_TICKS;
+    if(Inputs_State & PANEL_U_OR) PANEL_U_COUNTER = DEBOUNCE_TICKS;
+    if(Inputs_State & PANEL_D_OR) PANEL_D_COUNTER = DEBOUNCE_TICKS;
+    if(Inputs_State & PANEL_L_OR) PANEL_L_COUNTER = DEBOUNCE_TICKS;
+    if(Inputs_State & PANEL_R_OR) PANEL_R_COUNTER = DEBOUNCE_TICKS;
+    if(Inputs_State & PANEL_C_OR) PANEL_C_COUNTER = DEBOUNCE_TICKS;
 
-    State |= CH1_COUNTER > 0 ? CH1_PAD : 0;
-    State |= CH2_COUNTER > 0 ? CH2_PAD : 0;
-    State |= CH3_COUNTER > 0 ? CH3_PAD : 0;
-    State |= CH4_COUNTER > 0 ? CH4_PAD : 0;
-    State |= CH5_COUNTER > 0 ? CH5_PAD : 0;
+    State |= PANEL_U_COUNTER > 0 ? PANEL_U_OUT : 0;
+    State |= PANEL_D_COUNTER > 0 ? PANEL_D_OUT : 0;
+    State |= PANEL_L_COUNTER > 0 ? PANEL_L_OUT : 0;
+    State |= PANEL_R_COUNTER > 0 ? PANEL_R_OUT : 0;
+    State |= PANEL_C_COUNTER > 0 ? PANEL_C_OUT : 0;
   }
   else
   {
-    State |= (Inputs_State & CH1_OR) ? CH1_PAD : 0;
-    State |= (Inputs_State & CH2_OR) ? CH2_PAD : 0;
-    State |= (Inputs_State & CH3_OR) ? CH3_PAD : 0;
-    State |= (Inputs_State & CH4_OR) ? CH4_PAD : 0;
-    State |= (Inputs_State & CH5_OR) ? CH5_PAD : 0;
+    State |= (Inputs_State & PANEL_U_OR) ? PANEL_U_OUT : 0;
+    State |= (Inputs_State & PANEL_D_OR) ? PANEL_D_OUT : 0;
+    State |= (Inputs_State & PANEL_L_OR) ? PANEL_L_OUT : 0;
+    State |= (Inputs_State & PANEL_R_OR) ? PANEL_R_OUT : 0;
+    State |= (Inputs_State & PANEL_C_OR) ? PANEL_C_OUT : 0;
   }
 
-  if(Pads_State != State)
+  if(Outputs_State != State)
   {
-    Pads_State = State;
-    ShiftReg_WriteByte(&Pads_ShiftReg, Pads_State);
+    Outputs_State = State;
+    ShiftReg_WriteByte(&Outputs_ShiftReg, Outputs_State);
   }
 }
 
@@ -293,19 +293,19 @@ void Lights_Update(void)
 
   if(IS_OPT_ON(OPT_LIGHT)) 
   {
-    State |= (Pads_State & CH1_PAD) ? CH1_LIGHT : 0;
-    State |= (Pads_State & CH2_PAD) ? CH2_LIGHT : 0;
-    State |= (Pads_State & CH3_PAD) ? CH3_LIGHT : 0;
-    State |= (Pads_State & CH4_PAD) ? CH4_LIGHT : 0;
-    State |= (Pads_State & CH5_PAD) ? CH5_LIGHT : 0;
+    State |= (Outputs_State & PANEL_U_OUT) ? PANEL_U_LIGHT : 0;
+    State |= (Outputs_State & PANEL_D_OUT) ? PANEL_D_LIGHT : 0;
+    State |= (Outputs_State & PANEL_L_OUT) ? PANEL_L_LIGHT : 0;
+    State |= (Outputs_State & PANEL_R_OUT) ? PANEL_R_LIGHT : 0;
+    State |= (Outputs_State & PANEL_C_OUT) ? PANEL_C_LIGHT : 0;
   } 
   else 
   {
-    State |= (Inputs_State & COMM_FL1) ? CH1_LIGHT : 0;
-    State |= (Inputs_State & COMM_FL2) ? CH2_LIGHT : 0;
-    State |= (Inputs_State & COMM_FL3) ? CH3_LIGHT : 0;
-    State |= (Inputs_State & COMM_FL4) ? CH4_LIGHT : 0;
-    State |= (Inputs_State & COMM_FL5) ? CH5_LIGHT : 0;
+    State |= (Inputs_State & COMM_FL1) ? PANEL_U_LIGHT : 0;
+    State |= (Inputs_State & COMM_FL2) ? PANEL_D_LIGHT : 0;
+    State |= (Inputs_State & COMM_FL3) ? PANEL_L_LIGHT : 0;
+    State |= (Inputs_State & COMM_FL4) ? PANEL_R_LIGHT : 0;
+    State |= (Inputs_State & COMM_FL5) ? PANEL_C_LIGHT : 0;
   }
 
   if(Lights_State != State)
@@ -319,9 +319,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
   for(uint8_t i = 0; i < 5; i++) 
   {
-    if(Pads_Counters[i] > 0) 
+    if(Panel_Counters[i] > 0) 
     {
-      Pads_Counters[i]--;
+      Panel_Counters[i]--;
     }
   }
 }
@@ -332,7 +332,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
    * This code emulates the DDR Stage IO initialization.
    * 
    * When the DDR_INIT_CMD is received go into DDR_STAGE_INIT 
-   * mode, send the reply through CH1 and CH4 outputs at each
+   * mode, send the reply through PANEL_U and PANEL_R outputs at each
    * clock cycle then return into DDR_STAGE_IDLE mode.
    * 
    * The DDR_INIT_CMD is sent serially LSB first by sampling on clock 
@@ -360,19 +360,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
       {
         DDR_State = DDR_STAGE_INIT;
         DDR_Bit = 0;
-        ShiftReg_WriteByte(&Pads_ShiftReg, DDR_Pads_States[DDR_Bit]);
+        ShiftReg_WriteByte(&Outputs_ShiftReg, DDR_Outputs_States[DDR_Bit]);
       }
       break;
     case DDR_STAGE_INIT:
       if(++DDR_Bit < 22)
       {
-        ShiftReg_WriteByte(&Pads_ShiftReg, DDR_Pads_States[DDR_Bit]);
+        ShiftReg_WriteByte(&Outputs_ShiftReg, DDR_Outputs_States[DDR_Bit]);
       }
       else
       {
         DDR_State = DDR_STAGE_IDLE;
         DDR_Bit = 0;
-        ShiftReg_WriteByte(&Pads_ShiftReg, 0x0);
+        ShiftReg_WriteByte(&Outputs_ShiftReg, 0);
       }
       break;
   }
