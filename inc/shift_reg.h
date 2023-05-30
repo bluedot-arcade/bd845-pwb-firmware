@@ -22,11 +22,7 @@
 extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
-
 #include "stm32f0xx_hal.h"
-
-/* Exported types ------------------------------------------------------------*/
 
 typedef enum {
   LSBFIRST,
@@ -43,17 +39,10 @@ typedef struct {
   uint16_t Srclk_Pin;
 } ShiftReg_TypeDef;
 
-/* Exported functions prototypes ---------------------------------------------*/
-
 void ShiftReg_Init(ShiftReg_TypeDef* ShiftReg);
-
 void ShiftReg_ShiftBit(ShiftReg_TypeDef* ShiftReg, uint8_t bit);
-
 void ShiftReg_ShiftByte(ShiftReg_TypeDef* ShiftReg, uint8_t data);
-
 void ShiftReg_Latch(ShiftReg_TypeDef* ShiftReg);
-
-/** Shift a byte and subsequently latch the register. */
 void ShiftReg_WriteByte(ShiftReg_TypeDef* ShiftReg, uint8_t data);
 
 #ifdef __cplusplus

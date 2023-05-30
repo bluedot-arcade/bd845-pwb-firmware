@@ -23,25 +23,10 @@
 extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
-
 #include "stm32f0xx_hal.h"
-
-/* Private includes ----------------------------------------------------------*/
-
 #include "shift_reg.h"
 
-/* Exported types ------------------------------------------------------------*/
-
-/* Exported constants --------------------------------------------------------*/
-
-/* Exported macro ------------------------------------------------------------*/
-
-/* Exported functions prototypes ---------------------------------------------*/
-
 void Error_Handler(void);
-
-/* Private defines -----------------------------------------------------------*/
 
 #define OUTPUTS_SER_Pin GPIO_PIN_13
 #define OUTPUTS_SER_GPIO_Port GPIOC

@@ -15,20 +15,13 @@
   ******************************************************************************
   */
 
-/* Includes ------------------------------------------------------------------*/
-
-#include "main.h"
+#include "main.h"/* Private macro -------------------------------------------------------------*/
 #include "gpio.h"
 #include "tim.h"
 
-/* Private typedef -----------------------------------------------------------*/
-
-/* Private define ------------------------------------------------------------*/
 #define DDR_INIT_CMD 0x0C90
 #define DDR_STAGE_IDLE 0
 #define DDR_STAGE_INIT 1
-
-/* Private macro -------------------------------------------------------------*/
 
 /* Check if an option is enabled */
 #define IS_OPT_ON(opt) (Inputs_State & opt) 
@@ -37,8 +30,6 @@
 #define PANEL_L_COUNTER Panel_Counters[2]
 #define PANEL_R_COUNTER Panel_Counters[3]
 #define PANEL_C_COUNTER Panel_Counters[4]
-
-/* Private consts ------------------------------------------------------------*/
 
 static const uint8_t DDR_Outputs_States[] =
 {
@@ -49,8 +40,6 @@ static const uint8_t DDR_Outputs_States[] =
   0x12, 0x02, 0x12, 0x02,
   0x12, 0x02, 0x00, 0x00
 };
-
-/* Private variables ---------------------------------------------------------*/
 
 uint32_t Inputs_State = 0;
 
@@ -65,16 +54,14 @@ uint16_t DDR_Cmd = 0;
 uint8_t DDR_State = DDR_STAGE_IDLE;
 uint8_t DDR_Bit = 0;
 
-/* Private function prototypes -----------------------------------------------*/
-
 void SystemClock_Config(void);
 void Lights_Register_Init(void);
-void Pads_Register_Init(void);
+void Outputs_Register_Init(void);
 void Inputs_Poll(void);
-void Pads_Update(void);
+void Outputs_Update(void);
 void Lights_Update(void);
-
-/* Private user code ---------------------------------------------------------*/
+void Debounce_Tick_Handler(void);
+void Comms_Clock_Handler(void);
 
 /**
   * @brief  The application entry point.
@@ -315,7 +302,11 @@ void Lights_Update(void)
   }
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+/**
+  * @brief Called when a debounce tick occurs and updates the counters.
+  * @retval None
+  */
+void Debounce_Tick_Handler(void)
 {
   for(uint8_t i = 0; i < 5; i++) 
   {
@@ -326,7 +317,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
   }
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+/**
+  * @brief Called when a clock pulse rising edge has been 
+  *        detected on the TEST line.
+  * @retval None
+  */
+void Comms_Clock_Handler(void)
 {
   /*
    * This code emulates the DDR Stage IO initialization.
@@ -376,6 +372,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
       }
       break;
   }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+  Debounce_Tick_Handler();
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  /* Triggered by TEST Pin rising edge */
+  Comms_Clock_Handler();
 }
 
 /**

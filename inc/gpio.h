@@ -23,11 +23,7 @@
 extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
-
 #include "main.h"
-
-/* Exported functions prototypes ---------------------------------------------*/
 
 void MX_GPIO_Init(void);
 

@@ -22,11 +22,8 @@
  extern "C" {
 #endif
 
-/* Exported types ------------------------------------------------------------*/
-
-/* Exported constants --------------------------------------------------------*/
-
 /* ########################## Module Selection ############################## */
+
 /**
   * @brief This is the list of modules to be used in the HAL driver
   */
@@ -65,6 +62,7 @@
 #define HAL_I2C_MODULE_ENABLED
 
 /* ########################## HSE/HSI Values adaptation ##################### */
+
 /**
   * @brief Adjust the value of External High Speed oscillator (HSE) used in your application.
   *        This value is used by the RCC HAL module to compute the system frequency
@@ -143,6 +141,7 @@
    ===  you can define the HSE value in your toolchain compiler preprocessor. */
 
 /* ########################### System Configuration ######################### */
+
 /**
   * @brief This is the HAL system configuration section
   */
@@ -176,13 +175,12 @@
 #define  USE_HAL_PCD_REGISTER_CALLBACKS         0U /* PCD register callback disabled       */
 
 /* ########################## Assert Selection ############################## */
+
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the
   *        HAL drivers code
   */
 /* #define USE_FULL_ASSERT   1U */
-
-/* Includes ------------------------------------------------------------------*/
 
 /**
   * @brief Include module's header file
@@ -296,8 +294,6 @@
  #include "stm32f0xx_hal_wwdg.h"
 #endif /* HAL_WWDG_MODULE_ENABLED */
 
-/* Exported macro ------------------------------------------------------------*/
-
 #ifdef  USE_FULL_ASSERT
 /**
   * @brief  The assert_param macro is used for function's parameters check.
@@ -308,7 +304,7 @@
   * @retval None
   */
   #define assert_param(expr) ((expr) ? (void)0U : assert_failed((uint8_t *)__FILE__, __LINE__))
-/* Exported functions ------------------------------------------------------- */
+  
   void assert_failed(uint8_t* file, uint32_t line);
 #else
   #define assert_param(expr) ((void)0U)
