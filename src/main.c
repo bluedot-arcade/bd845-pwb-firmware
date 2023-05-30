@@ -394,8 +394,8 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
-    //Blink status LED indefinitely
-    ShiftReg_WriteByte(&Lights_ShiftReg, 0x00);
+    /* Blink status LED indefinitely */
+    ShiftReg_WriteByte(&Lights_ShiftReg, 0);
     HAL_Delay(500);
     ShiftReg_WriteByte(&Lights_ShiftReg, STATUS_LED);
     HAL_Delay(500);
