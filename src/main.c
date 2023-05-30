@@ -247,8 +247,8 @@ void Inputs_Poll(void)
   */
 void Pads_Update(void)
 {
-  /* Do not update pads during DDR initialization check. */
-  if(IS_OPT_ON(OPT_LEGACY) & DDR_State == DDR_STAGE_INIT)
+  /* Do not interfere with DDR Stage initialization. */
+  if(IS_OPT_ON(OPT_LEGACY) && DDR_State == DDR_STAGE_INIT)
     return;
 
   uint8_t State = 0;
