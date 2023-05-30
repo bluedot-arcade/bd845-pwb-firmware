@@ -24,6 +24,9 @@
 /* Private typedef -----------------------------------------------------------*/
 
 /* Private define ------------------------------------------------------------*/
+#define DDR_INIT_CMD 0x0C90
+#define DDR_STAGE_IDLE 0
+#define DDR_STAGE_INIT 1
 
 /* Private macro -------------------------------------------------------------*/
 
@@ -35,14 +38,32 @@
 #define CH4_COUNTER Pads_Counters[3]
 #define CH5_COUNTER Pads_Counters[4]
 
+/* Private consts ------------------------------------------------------------*/
+
+static const uint8_t DDR_Pads_States[] =
+{
+  0x12, 0x00, 0x10, 0x02,
+  0x12, 0x02, 0x12, 0x02,
+  0x12, 0x02, 0x12, 0x02,
+  0x12, 0x02, 0x12, 0x02,
+  0x12, 0x02, 0x12, 0x02,
+  0x12, 0x02, 0x00, 0x00
+};
+
 /* Private variables ---------------------------------------------------------*/
 
-ShiftReg_TypeDef Pads_ShiftReg;
-ShiftReg_TypeDef Lights_ShiftReg;
 uint32_t Inputs_State = 0;
-uint8_t Lights_State = 0;
+
+ShiftReg_TypeDef Pads_ShiftReg;
 uint8_t Pads_State = 0;
 uint8_t Pads_Counters[5];
+
+ShiftReg_TypeDef Lights_ShiftReg;
+uint8_t Lights_State = 0;
+
+uint16_t DDR_Cmd = 0;
+uint8_t DDR_State = DDR_STAGE_IDLE;
+uint8_t DDR_Bit = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 
@@ -171,37 +192,37 @@ void Inputs_Poll(void)
 {
   uint32_t State = 0;
 
-  // Poll CH1 sensors
+  /* Poll CH1 sensors */
   State |= HAL_GPIO_ReadPin(CH1_S1_GPIO_Port, CH1_S1_Pin);
   State |= HAL_GPIO_ReadPin(CH1_S2_GPIO_Port, CH1_S2_Pin) << 1;
   State |= HAL_GPIO_ReadPin(CH1_S3_GPIO_Port, CH1_S3_Pin) << 2;
   State |= HAL_GPIO_ReadPin(CH1_S4_GPIO_Port, CH1_S4_Pin) << 3;
 
-  // Poll CH2 sensors
+  /* Poll CH2 sensors */
   State |= HAL_GPIO_ReadPin(CH2_S1_GPIO_Port, CH2_S1_Pin) << 4;
   State |= HAL_GPIO_ReadPin(CH2_S2_GPIO_Port, CH2_S2_Pin) << 5;
   State |= HAL_GPIO_ReadPin(CH2_S3_GPIO_Port, CH2_S3_Pin) << 6;
   State |= HAL_GPIO_ReadPin(CH2_S4_GPIO_Port, CH2_S4_Pin) << 7;
 
-  // Poll CH3 sensors
+  /* Poll CH3 sensors */
   State |= HAL_GPIO_ReadPin(CH3_S1_GPIO_Port, CH3_S1_Pin) << 8;
   State |= HAL_GPIO_ReadPin(CH3_S2_GPIO_Port, CH3_S2_Pin) << 9;
   State |= HAL_GPIO_ReadPin(CH3_S3_GPIO_Port, CH3_S3_Pin) << 10;
   State |= HAL_GPIO_ReadPin(CH3_S4_GPIO_Port, CH3_S4_Pin) << 11;
 
-  // Poll CH4 sensors
+  /* Poll CH4 sensors */
   State |= HAL_GPIO_ReadPin(CH4_S1_GPIO_Port, CH4_S1_Pin) << 12;
   State |= HAL_GPIO_ReadPin(CH4_S2_GPIO_Port, CH4_S2_Pin) << 13;
   State |= HAL_GPIO_ReadPin(CH4_S3_GPIO_Port, CH4_S3_Pin) << 14;
   State |= HAL_GPIO_ReadPin(CH4_S4_GPIO_Port, CH4_S4_Pin) << 15;
 
-  // Poll CH5 sensors
+  /* Poll CH5 sensors */
   State |= HAL_GPIO_ReadPin(CH5_S1_GPIO_Port, CH5_S1_Pin) << 16;
   State |= HAL_GPIO_ReadPin(CH5_S2_GPIO_Port, CH5_S2_Pin) << 17;
   State |= HAL_GPIO_ReadPin(CH5_S3_GPIO_Port, CH5_S3_Pin) << 18;
   State |= HAL_GPIO_ReadPin(CH5_S4_GPIO_Port, CH5_S4_Pin) << 19;
 
-  // Poll COMM states
+  /* Poll COMM states */
   State |= HAL_GPIO_ReadPin(COMM_FL1_GPIO_Port, COMM_FL1_Pin) << 20;
   State |= HAL_GPIO_ReadPin(COMM_FL2_GPIO_Port, COMM_FL2_Pin) << 21;
   State |= HAL_GPIO_ReadPin(COMM_FL3_GPIO_Port, COMM_FL3_Pin) << 22;
@@ -209,11 +230,10 @@ void Inputs_Poll(void)
   State |= HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin) << 24;
   State |= HAL_GPIO_ReadPin(COMM_TEST_GPIO_Port, COMM_TEST_Pin) << 25;
 
-  // All inputs except OPT are active low
-  // so they need to be inverted.
+  /* All inputs except OPT are active low so they need to be inverted. */
   State = ~State & 0x03FFFFFF; 
 
-  // Poll OPT states
+  /* Poll OPT states */
   State |= HAL_GPIO_ReadPin(OPT_LIGHT_GPIO_Port, OPT_LIGHT_Pin) << 26;
   State |= HAL_GPIO_ReadPin(OPT_DEBOUNCE_GPIO_Port, OPT_DEBOUNCE_Pin) << 27;
   State |= HAL_GPIO_ReadPin(OPT_LEGACY_GPIO_Port, OPT_LEGACY_Pin) << 28;
@@ -227,6 +247,10 @@ void Inputs_Poll(void)
   */
 void Pads_Update(void)
 {
+  /* Do not update pads during DDR initialization check. */
+  if(IS_OPT_ON(OPT_LEGACY) & DDR_State == DDR_STAGE_INIT)
+    return;
+
   uint8_t State = 0;
 
   if(IS_OPT_ON(OPT_DEBOUNCE)) 
@@ -299,6 +323,58 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     {
       Pads_Counters[i]--;
     }
+  }
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  /*
+   * This code emulates the DDR Stage IO initialization.
+   * 
+   * When the DDR_INIT_CMD is received go into DDR_STAGE_INIT 
+   * mode, send the reply through CH1 and CH4 outputs at each
+   * clock cycle then return into DDR_STAGE_IDLE mode.
+   * 
+   * The DDR_INIT_CMD is sent serially LSB first by sampling on clock 
+   * rising edge.
+   * 
+   * Serial data line: FL5 Pin.
+   * Clock line:       TEST Pin (configured as ext interrupt).
+   * 
+   * This is based on how MAME emulates the KSYS573.
+   * All games that boot on MAME should boot with this board too.
+   * https://github.com/mamedev/mame/blob/master/src/mame/konami/ksys573.cpp
+   */
+
+  if(!IS_OPT_ON(OPT_LEGACY))
+    return;
+
+  uint8_t data = HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin);
+
+  DDR_Cmd = (DDR_Cmd >> 1) | (data << 12); 
+
+  switch(DDR_State)
+  {
+    case DDR_STAGE_IDLE:
+      if(DDR_Cmd == DDR_INIT_CMD)
+      {
+        DDR_State = DDR_STAGE_INIT;
+        DDR_Bit = 0;
+        ShiftReg_WriteByte(&Pads_ShiftReg, DDR_Pads_States[DDR_Bit]);
+      }
+      break;
+    case DDR_STAGE_INIT:
+      if(++DDR_Bit < 22)
+      {
+        ShiftReg_WriteByte(&Pads_ShiftReg, DDR_Pads_States[DDR_Bit]);
+      }
+      else
+      {
+        DDR_State = DDR_STAGE_IDLE;
+        DDR_Bit = 0;
+        ShiftReg_WriteByte(&Pads_ShiftReg, 0x0);
+      }
+      break;
   }
 }
 

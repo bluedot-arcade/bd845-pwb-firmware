@@ -74,25 +74,28 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin
                            PBPin PBPin PBPin PBPin
                            PBPin PBPin PBPin PBPin
-                           PBPin PBPin PBPin PBPin */
+                           PBPin PBPin PBPin */
   GPIO_InitStruct.Pin = CH4_S3_Pin|CH4_S2_Pin|CH4_S1_Pin|CH3_S4_Pin
                           |CH3_S3_Pin|CH3_S2_Pin|CH3_S1_Pin|CH2_S4_Pin
-                          |CH2_S3_Pin|OPT_LEGACY_Pin|COMM_TEST_Pin|COMM_FL5_Pin
-                          |COMM_FL4_Pin|COMM_FL3_Pin|COMM_FL2_Pin|COMM_FL1_Pin;
+                          |CH2_S3_Pin|OPT_LEGACY_Pin|COMM_FL5_Pin|COMM_FL4_Pin
+                          |COMM_FL3_Pin|COMM_FL2_Pin|COMM_FL1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = CH1_S1_Pin;
+  /*Configure GPIO pins : PFPin PFPin */
+  GPIO_InitStruct.Pin = CH1_S1_Pin|OPT_LIGHT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(CH1_S1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = OPT_LIGHT_Pin;
+  GPIO_InitStruct.Pin = COMM_TEST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(OPT_LIGHT_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(COMM_TEST_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 }

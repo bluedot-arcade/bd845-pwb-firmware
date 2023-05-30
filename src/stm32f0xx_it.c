@@ -95,6 +95,14 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles EXTI line 4 to 15 interrupts.
+  */
+void EXTI4_15_IRQHandler(void)
+{
+  HAL_GPIO_EXTI_IRQHandler(COMM_TEST_Pin);
+}
+
+/**
   * @brief This function handles TIM3 global interrupt.
   */
 void TIM3_IRQHandler(void)
