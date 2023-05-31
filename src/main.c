@@ -93,7 +93,7 @@ int main(void)
     Inputs_Poll();
 
     /* Do not interfere with DDR Stage initialization. */
-    if(IS_OPT_ON(OPT_LEGACY) && DDR_State == DDR_STATE_INIT)
+    if(DDR_State == DDR_STATE_INIT)
     {
       DDR_Timeout_Check();
     } 
