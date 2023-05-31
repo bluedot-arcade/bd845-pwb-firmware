@@ -156,6 +156,9 @@ void Error_Handler(void);
 /* Input debouncing ticks of 100uS */
 #define DEBOUNCE_TICKS 40
 
+/* DDR Init timeout in ms */
+#define DDR_TIMEOUT_TICKS 600
+
 #ifdef __cplusplus
 }
 #endif

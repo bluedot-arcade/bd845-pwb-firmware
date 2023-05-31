@@ -20,8 +20,8 @@
 #include "tim.h"
 
 #define DDR_INIT_CMD 0x0C90
-#define DDR_STAGE_IDLE 0
-#define DDR_STAGE_INIT 1
+#define DDR_STATE_IDLE 0
+#define DDR_STATE_INIT 1
 
 /* Check if an option is enabled */
 #define IS_OPT_ON(opt) (Inputs_State & opt) 
@@ -50,9 +50,10 @@ uint8_t Panel_Counters[5];
 ShiftReg_TypeDef Lights_ShiftReg;
 uint8_t Lights_State = 0;
 
-uint16_t DDR_Cmd = 0;
-uint8_t DDR_State = DDR_STAGE_IDLE;
+uint8_t DDR_State = DDR_STATE_IDLE;
 uint8_t DDR_Bit = 0;
+uint16_t DDR_Cmd = 0;
+uint32_t DDR_Init_Tick = 0;
 
 void SystemClock_Config(void);
 void Lights_Register_Init(void);
@@ -62,6 +63,7 @@ void Outputs_Update(void);
 void Lights_Update(void);
 void Debounce_Tick_Handler(void);
 void Comms_Clock_Handler(void);
+void DDR_Timeout_Check(void);
 
 /**
   * @brief  The application entry point.
@@ -81,7 +83,7 @@ int main(void)
   
   /* Initialize shift registers */
   Lights_Register_Init();
-  Pads_Register_Init();
+  Outputs_Register_Init();
 
   /* Start timers */
   TIM3_Start();
@@ -89,7 +91,17 @@ int main(void)
   while (1)
   {
     Inputs_Poll();
-    Pads_Update();
+
+    /* Do not interfere with DDR Stage initialization. */
+    if(IS_OPT_ON(OPT_LEGACY) && DDR_State == DDR_STATE_INIT)
+    {
+      DDR_Timeout_Checker();
+    } 
+    else
+    {
+      Outputs_Update();
+    }
+
     Lights_Update();
   }
 }
@@ -155,7 +167,7 @@ void Lights_Register_Init(void) {
   * @brief Init pads shift register.
   * @retval None
   */
-void Pads_Register_Init(void) {
+void Outputs_Register_Init(void) {
   ShiftReg_TypeDef ShiftReg = {0};
 
   ShiftReg.BitOrder = MSBFIRST;
@@ -232,12 +244,8 @@ void Inputs_Poll(void)
   * @brief Update the pads output registers.
   * @retval None
   */
-void Pads_Update(void)
+void Outputs_Update(void)
 {
-  /* Do not interfere with DDR Stage initialization. */
-  if(IS_OPT_ON(OPT_LEGACY) && DDR_State == DDR_STAGE_INIT)
-    return;
-
   uint8_t State = 0;
 
   if(IS_OPT_ON(OPT_DEBOUNCE)) 
@@ -276,7 +284,8 @@ void Pads_Update(void)
   */
 void Lights_Update(void)
 {
-  uint8_t State = 0;
+  /* Preserve STATUS_LED state */
+  uint8_t State = Lights_State & STATUS_LED;
 
   if(IS_OPT_ON(OPT_LIGHT)) 
   {
@@ -351,27 +360,36 @@ void Comms_Clock_Handler(void)
 
   switch(DDR_State)
   {
-    case DDR_STAGE_IDLE:
+    case DDR_STATE_IDLE:
       if(DDR_Cmd == DDR_INIT_CMD)
       {
-        DDR_State = DDR_STAGE_INIT;
+        DDR_State = DDR_STATE_INIT;
+        DDR_Init_Tick = HAL_GetTick();
         DDR_Bit = 0;
         ShiftReg_WriteByte(&Outputs_ShiftReg, DDR_Outputs_States[DDR_Bit]);
       }
       break;
-    case DDR_STAGE_INIT:
+    case DDR_STATE_INIT:
       if(++DDR_Bit < 22)
       {
         ShiftReg_WriteByte(&Outputs_ShiftReg, DDR_Outputs_States[DDR_Bit]);
       }
       else
       {
-        DDR_State = DDR_STAGE_IDLE;
-        DDR_Bit = 0;
+        DDR_State = DDR_STATE_IDLE;
         ShiftReg_WriteByte(&Outputs_ShiftReg, 0);
       }
       break;
   }
+}
+
+void DDR_Timeout_Check(void)
+{
+  if(HAL_GetTick() - DDR_Init_Tick > DDR_TIMEOUT_TICKS)
+  { 
+    /* DDR Init timed out. Reset to IDLE state */
+    DDR_State = DDR_STATE_IDLE;
+  } 
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
