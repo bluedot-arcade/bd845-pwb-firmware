@@ -14,15 +14,14 @@
 ## Status
 
 The project is still in development. Don't expect all things to work just yet.
-The DDR Stage IO communication protocol has not been yet implemented.
 
 Feature status:
 - [X] Sensors polling and outputting.
 - [X] Sensors debouncing.
 - [X] Light-on-press mode.
 - [X] External lights driver.
-- [ ] Legacy mode (KSYS573 protocol enable).
-- [ ] KSYS573 IO check on boot sequence.
+- [X] Legacy mode (KSYS573 protocol enable).
+- [X] KSYS573 IO check on boot sequence.
 - [ ] KSYS573 Sensor addressing in settings.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
