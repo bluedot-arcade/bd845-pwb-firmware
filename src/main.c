@@ -95,7 +95,7 @@ int main(void)
     /* Do not interfere with DDR Stage initialization. */
     if(IS_OPT_ON(OPT_LEGACY) && DDR_State == DDR_STATE_INIT)
     {
-      DDR_Timeout_Checker();
+      DDR_Timeout_Check();
     } 
     else
     {
