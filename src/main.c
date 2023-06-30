@@ -15,13 +15,20 @@
   ******************************************************************************
   */
 
-#include "main.h"/* Private macro -------------------------------------------------------------*/
+#include "main.h"
 #include "gpio.h"
 #include "tim.h"
 
-#define DDR_INIT_CMD 0x0C90
-#define DDR_STATE_IDLE 0
-#define DDR_STATE_INIT 1
+#define FW_VERSION_MAJOR 1
+#define FW_VERSION_MINOR 2
+#define FW_VERSION_PATCH 3 
+
+#define SERIAL_CMD_DDR_INIT    0x0C90
+#define SERIAL_CMD_REQ_VERSION 0x065A
+
+#define SERIAL_STATE_IDLE        0
+#define SERIAL_STATE_DDR_INIT    1
+#define SERIAL_STATE_REQ_VERSION 2
 
 /* Check if an option is enabled */
 #define IS_OPT_ON(opt) (Inputs_State & opt) 
@@ -50,10 +57,10 @@ uint8_t Panel_Counters[5];
 ShiftReg_TypeDef Lights_ShiftReg;
 uint8_t Lights_State = 0;
 
-uint8_t DDR_State = DDR_STATE_IDLE;
-uint8_t DDR_Bit = 0;
-uint16_t DDR_Cmd = 0;
-uint32_t DDR_Init_Tick = 0;
+uint8_t Serial_State = SERIAL_STATE_IDLE;
+uint8_t Serial_Bit = 0;
+uint16_t Serial_Cmd = 0;
+uint32_t Serial_Init_Tick = 0;
 
 void SystemClock_Config(void);
 void Lights_Register_Init(void);
@@ -62,8 +69,11 @@ void Inputs_Poll(void);
 void Outputs_Update(void);
 void Lights_Update(void);
 void Debounce_Tick_Handler(void);
-void Comms_Clock_Handler(void);
-void DDR_Timeout_Check(void);
+void Serial_Clock_Handler(void);
+void Serial_Idle_Clock_Handler(void);
+void Serial_DDR_Init_Clock_Handler(void);
+void Serial_Req_Version_Clock_Handler(void);
+void Serial_Timeout_Check(void);
 
 /**
   * @brief  The application entry point.
@@ -92,10 +102,10 @@ int main(void)
   {
     Inputs_Poll();
 
-    /* Do not interfere with DDR Stage initialization. */
-    if(DDR_State == DDR_STATE_INIT)
+    /* Do not interfere with Serial communication. */
+    if(Serial_State != SERIAL_STATE_IDLE)
     {
-      DDR_Timeout_Check();
+      Serial_Timeout_Check();
     } 
     else
     {
@@ -331,64 +341,146 @@ void Debounce_Tick_Handler(void)
   *        detected on the TEST line.
   * @retval None
   */
-void Comms_Clock_Handler(void)
+void Serial_Clock_Handler(void)
 {
-  /*
-   * This code emulates the DDR Stage IO initialization.
-   * 
-   * When the DDR_INIT_CMD is received go into DDR_STAGE_INIT 
-   * mode, send the reply through PANEL_U and PANEL_R outputs at each
-   * clock cycle then return into DDR_STAGE_IDLE mode.
-   * 
-   * The DDR_INIT_CMD is sent serially LSB first by sampling on clock 
-   * rising edge.
-   * 
+  switch(Serial_State)
+  {
+    case SERIAL_STATE_IDLE:
+      Serial_Idle_Clock_Handler();
+      break;
+    case SERIAL_STATE_DDR_INIT:
+      Serial_DDR_Init_Clock_Handler();
+      break;
+    case SERIAL_STATE_REQ_VERSION:
+      Serial_Req_Version_Clock_Handler();
+      break;
+  }
+}
+
+/**
+  * @brief Handles clock pulses when in SERIAL_STATE_IDLE.
+  * @retval None
+  */
+void Serial_Idle_Clock_Handler(void)
+{
+  /* 
+   * Commands are sent serially LSB first by sampling data line 
+   * on clock ising edge.
+   *
    * Serial data line: FL5 Pin.
    * Clock line:       TEST Pin (configured as ext interrupt).
-   * 
-   * This is based on how MAME emulates the KSYS573.
-   * All games that boot on MAME should boot with this board too.
-   * https://github.com/mamedev/mame/blob/master/src/mame/konami/ksys573.cpp
    */
 
+  uint8_t data = HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin);
+  
+  /* Assemble 12-bits command */
+  Serial_Cmd = (Serial_Cmd >> 1) | (data << 12); 
+
+  switch(Serial_Cmd)
+  {
+    case SERIAL_CMD_DDR_INIT:
+      Serial_DDR_Init_Clock_Handler();
+      break;
+    case SERIAL_CMD_REQ_VERSION:
+      Serial_Req_Version_Clock_Handler();
+      break;
+  }
+}
+
+/**
+  * This code emulates the DDR Stage IO initialization.
+  * 
+  * This is called when the SERIAL_CMD_DDR_INIT is received. Go into 
+  * SERIAL_STATE_DDR_INIT state, send the reply through PANEL_U and PANEL_R 
+  * outputs at each clock cycle, then return into SERIAL_STATE_IDLE mode.
+  * 
+  * This is based on how MAME emulates the KSYS573.
+  * All games that boot on MAME should boot with this board too.
+  * https://github.com/mamedev/mame/blob/master/src/mame/konami/ksys573.cpp
+  * @retval None
+  */
+void Serial_DDR_Init_Clock_Handler(void) 
+{
   if(!IS_OPT_ON(OPT_LEGACY))
     return;
 
-  uint8_t data = HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin);
-
-  DDR_Cmd = (DDR_Cmd >> 1) | (data << 12); 
-
-  switch(DDR_State)
-  {
-    case DDR_STATE_IDLE:
-      if(DDR_Cmd == DDR_INIT_CMD)
+  switch(Serial_State) {
+    case SERIAL_STATE_IDLE:
+      Serial_State = SERIAL_STATE_DDR_INIT;
+      Serial_Init_Tick = HAL_GetTick();
+      Serial_Bit = 0;
+    case SERIAL_STATE_DDR_INIT:
+      if(Serial_Bit < 22)
       {
-        DDR_State = DDR_STATE_INIT;
-        DDR_Init_Tick = HAL_GetTick();
-        DDR_Bit = 0;
-        ShiftReg_WriteByte(&Outputs_ShiftReg, DDR_Outputs_States[DDR_Bit]);
-      }
-      break;
-    case DDR_STATE_INIT:
-      if(++DDR_Bit < 22)
-      {
-        ShiftReg_WriteByte(&Outputs_ShiftReg, DDR_Outputs_States[DDR_Bit]);
+        ShiftReg_WriteByte(&Outputs_ShiftReg, DDR_Outputs_States[Serial_Bit]);
+        Serial_Bit++;
       }
       else
       {
-        DDR_State = DDR_STATE_IDLE;
+        Serial_State = SERIAL_STATE_IDLE;
         ShiftReg_WriteByte(&Outputs_ShiftReg, 0);
       }
       break;
   }
 }
 
-void DDR_Timeout_Check(void)
+/**
+  * Handles clock pulses when firmware version is requested.
+  * 
+  * This is called when the SERIAL_CMD_REQ_VERSION is received. Go into 
+  * SERIAL_STATE_REQ_VERSION state, send the reply through PANEL_U and PANEL_R 
+  * outputs at each clock cycle, then return into SERIAL_STATE_IDLE mode.
+  * 
+  * @retval None
+  */
+void Serial_Req_Version_Clock_Handler(void) 
 {
-  if(HAL_GetTick() - DDR_Init_Tick > DDR_TIMEOUT_TICKS)
+  switch(Serial_State) {
+    case SERIAL_STATE_IDLE:
+      Serial_State = SERIAL_STATE_REQ_VERSION;
+      Serial_Init_Tick = HAL_GetTick();
+      Serial_Bit = 0;
+    case SERIAL_STATE_REQ_VERSION:
+      /* Send version parts (MAJOR, MINOR, PATCH) as 8-bits unsigned ints. */
+      if(Serial_Bit < 24)
+      {
+        uint8_t versionPart = 0;
+        switch(Serial_Bit / 8) {
+          case 0:
+            versionPart = FW_VERSION_MAJOR;
+            break;
+          case 1:
+            versionPart = FW_VERSION_MINOR;
+            break;
+          case 2:
+            versionPart = FW_VERSION_PATCH;
+            break;
+        }
+
+        /* Send version part bit on PANEL_U and inverted on PANEL_R. */
+        uint8_t outputs = (versionPart >> (Serial_Bit % 8)) & 0x01 ? PANEL_U_OUT : PANEL_R_OUT;
+        ShiftReg_WriteByte(&Outputs_ShiftReg, outputs);
+        Serial_Bit++;
+      }
+      else
+      {
+        Serial_State = SERIAL_STATE_IDLE;
+        ShiftReg_WriteByte(&Outputs_ShiftReg, 0);
+      }
+      break;
+  }
+}
+
+/**
+  * @brief Return to SERIAL_STATE_IDLE if command reply timed out.
+  * @retval None
+  */
+void Serial_Timeout_Check(void)
+{
+  if(HAL_GetTick() - Serial_Init_Tick > SERIAL_TIMEOUT_TICKS)
   { 
-    /* DDR Init timed out. Reset to IDLE state */
-    DDR_State = DDR_STATE_IDLE;
+    /* Command reply timed out. Reset state to SERIAL_STATE_IDLE */
+    Serial_State = SERIAL_STATE_IDLE;
   } 
 }
 
@@ -400,7 +492,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   /* Triggered by TEST Pin rising edge */
-  Comms_Clock_Handler();
+  Serial_Clock_Handler();
 }
 
 /**
