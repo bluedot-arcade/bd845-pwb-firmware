@@ -19,13 +19,6 @@
 #include "gpio.h"
 #include "tim.h"
 
-#define SERIAL_CMD_DDR_INIT    0x0C90
-#define SERIAL_CMD_REQ_VERSION 0x065A
-
-#define SERIAL_STATE_IDLE        0
-#define SERIAL_STATE_DDR_INIT    1
-#define SERIAL_STATE_REQ_VERSION 2
-
 /* Check if an option is enabled */
 #define IS_OPT_ON(opt) (Inputs_State & opt) 
 #define PANEL_U_COUNTER Panel_Counters[0]

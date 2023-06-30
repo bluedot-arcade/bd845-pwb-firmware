@@ -29,6 +29,13 @@ extern "C" {
 
 void Error_Handler(void);
 
+#define SERIAL_CMD_DDR_INIT    0x0C90
+#define SERIAL_CMD_REQ_VERSION 0x065A
+
+#define SERIAL_STATE_IDLE        0
+#define SERIAL_STATE_DDR_INIT    1
+#define SERIAL_STATE_REQ_VERSION 2
+
 #define OUTPUTS_SER_Pin GPIO_PIN_13
 #define OUTPUTS_SER_GPIO_Port GPIOC
 #define OUTPUTS_RCLK_Pin GPIO_PIN_14
