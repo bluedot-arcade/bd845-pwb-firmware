@@ -19,10 +19,6 @@
 #include "gpio.h"
 #include "tim.h"
 
-#define FW_VERSION_MAJOR 1
-#define FW_VERSION_MINOR 2
-#define FW_VERSION_PATCH 3 
-
 #define SERIAL_CMD_DDR_INIT    0x0C90
 #define SERIAL_CMD_REQ_VERSION 0x065A
 
@@ -441,19 +437,19 @@ void Serial_Req_Version_Clock_Handler(void)
       Serial_Init_Tick = HAL_GetTick();
       Serial_Bit = 0;
     case SERIAL_STATE_REQ_VERSION:
-      /* Send version parts (MAJOR, MINOR, PATCH) as 8-bits unsigned ints. */
+      /* Send version parts(MAJOR, MINOR, PATCH) as 8-bits unsigned ints, LSB first. */
       if(Serial_Bit < 24)
       {
         uint8_t versionPart = 0;
         switch(Serial_Bit / 8) {
           case 0:
-            versionPart = FW_VERSION_MAJOR;
+            versionPart = VERSION_MAJOR;
             break;
           case 1:
-            versionPart = FW_VERSION_MINOR;
+            versionPart = VERSION_MINOR;
             break;
           case 2:
-            versionPart = FW_VERSION_PATCH;
+            versionPart = VERSION_PATCH;
             break;
         }
 

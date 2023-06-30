@@ -25,6 +25,7 @@ extern "C" {
 
 #include "stm32f0xx_hal.h"
 #include "shift_reg.h"
+#include "version.h"
 
 void Error_Handler(void);
 
