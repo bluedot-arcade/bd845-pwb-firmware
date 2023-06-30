@@ -369,7 +369,7 @@ void Serial_Idle_Clock_Handler(void)
 
   uint8_t data = HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin);
   
-  /* Assemble 12-bits command */
+  /* Assemble 13-bits command */
   Serial_Cmd = (Serial_Cmd >> 1) | (data << 12); 
 
   switch(Serial_Cmd)
