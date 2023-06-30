@@ -25,6 +25,7 @@ extern "C" {
 
 #include "stm32f0xx_hal.h"
 #include "shift_reg.h"
+#include "version.h"
 
 void Error_Handler(void);
 
@@ -157,7 +158,7 @@ void Error_Handler(void);
 #define DEBOUNCE_TICKS 40
 
 /* DDR Init timeout in ms */
-#define DDR_TIMEOUT_TICKS 600
+#define SERIAL_TIMEOUT_TICKS 600
 
 #ifdef __cplusplus
 }
