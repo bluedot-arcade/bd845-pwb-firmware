@@ -76,4 +76,4 @@ Distributed under the MIT License. See [LICENSE.txt] for more information.
 [LICENSE.txt]: /LICENSE.txt
 [PlatformIO Core Docs]: https://docs.platformio.org/en/latest/core/index.html
 [PlatformIO Docs]: https://docs.platformio.org/
-[documentation]: https://docs.bluedotarcade.com/boards/bd845-pwbhttps://docs.bluedotarcade.com/boards/bd845-pwb
+[documentation]: https://docs.bluedotarcade.com/boards/bd845-pwb
