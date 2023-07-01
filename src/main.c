@@ -477,6 +477,8 @@ void Serial_Req_Version_Clock_Handler(void)
   * @retval None
   */
 void Serial_Sensor_Mask_Clock_Handler(void) {
+  uint8_t data;
+
   switch(Serial_State) {
     case SERIAL_STATE_IDLE:
       Serial_State = SERIAL_STATE_SENSOR_MASK;
@@ -485,8 +487,13 @@ void Serial_Sensor_Mask_Clock_Handler(void) {
       Inputs_Mask = 0xFFF00000;
       break;
     case SERIAL_STATE_SENSOR_MASK:
-      uint8_t data = ~HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin) & 0x01;
+      data = ~HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin) & 0x01;
       Inputs_Mask |= data << Serial_Bit;
+      
+      /* Echoes received data to PANEL_U_OUT and inverted on PANEL_R_OUT. */
+      uint8_t outputs = data ? PANEL_U_OUT : PANEL_R_OUT;
+      ShiftReg_WriteByte(&Outputs_ShiftReg, outputs);
+      
       if(++Serial_Bit >= 20) 
         Serial_State = SERIAL_STATE_IDLE;
       break;

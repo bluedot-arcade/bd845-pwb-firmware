@@ -31,7 +31,7 @@ void Error_Handler(void);
 
 #define SERIAL_CMD_DDR_INIT    0x0C90
 #define SERIAL_CMD_REQ_VERSION 0x065A
-#define SERIAL_CMD_SENSOR_MASK 0x049A
+#define SERIAL_CMD_SENSOR_MASK 0x0B24
 
 #define SERIAL_STATE_IDLE        0
 #define SERIAL_STATE_DDR_INIT    1
