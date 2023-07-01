@@ -37,6 +37,7 @@ static const uint8_t DDR_Outputs_States[] =
   0x12, 0x02, 0x00, 0x00
 };
 
+uint32_t Inputs_Mask = 0xFFFFFFFF;
 uint32_t Inputs_State = 0;
 
 ShiftReg_TypeDef Outputs_ShiftReg;
@@ -62,6 +63,7 @@ void Serial_Clock_Handler(void);
 void Serial_Idle_Clock_Handler(void);
 void Serial_DDR_Init_Clock_Handler(void);
 void Serial_Req_Version_Clock_Handler(void);
+void Serial_Sensor_Mask_Clock_Handler(void);
 void Serial_Timeout_Check(void);
 
 /**
@@ -236,7 +238,7 @@ void Inputs_Poll(void)
   State |= HAL_GPIO_ReadPin(OPT_DEBOUNCE_GPIO_Port, OPT_DEBOUNCE_Pin) << 27;
   State |= HAL_GPIO_ReadPin(OPT_LEGACY_GPIO_Port, OPT_LEGACY_Pin) << 28;
 
-  Inputs_State = State;
+  Inputs_State = State & Inputs_Mask;
 }
 
 /**
@@ -319,9 +321,7 @@ void Debounce_Tick_Handler(void)
   for(uint8_t i = 0; i < 5; i++) 
   {
     if(Panel_Counters[i] > 0) 
-    {
       Panel_Counters[i]--;
-    }
   }
 }
 
@@ -342,6 +342,9 @@ void Serial_Clock_Handler(void)
       break;
     case SERIAL_STATE_REQ_VERSION:
       Serial_Req_Version_Clock_Handler();
+      break;
+    case SERIAL_STATE_SENSOR_MASK:
+      Serial_Sensor_Mask_Clock_Handler();
       break;
   }
 }
@@ -372,6 +375,9 @@ void Serial_Idle_Clock_Handler(void)
       break;
     case SERIAL_CMD_REQ_VERSION:
       Serial_Req_Version_Clock_Handler();
+      break;
+    case SERIAL_CMD_SENSOR_MASK:
+      Serial_Sensor_Mask_Clock_Handler();
       break;
   }
 }
@@ -434,7 +440,8 @@ void Serial_Req_Version_Clock_Handler(void)
       if(Serial_Bit < 24)
       {
         uint8_t versionPart = 0;
-        switch(Serial_Bit / 8) {
+        switch(Serial_Bit / 8) 
+        {
           case 0:
             versionPart = VERSION_MAJOR;
             break;
@@ -461,6 +468,39 @@ void Serial_Req_Version_Clock_Handler(void)
 }
 
 /**
+  * Handles clock pulses when sensor mask is being sent.
+  * 
+  * This is called when the SERIAL_CMD_SENSOR_MASK is received. Go into 
+  * SERIAL_STATE_SENSOR_MASK state, receive the sensor mask then return 
+  * into SERIAL_STATE_IDLE mode.
+  * 
+  * @retval None
+  */
+void Serial_Sensor_Mask_Clock_Handler(void) {
+  uint8_t data;
+
+  switch(Serial_State) {
+    case SERIAL_STATE_IDLE:
+      Serial_State = SERIAL_STATE_SENSOR_MASK;
+      Serial_Init_Tick = HAL_GetTick();
+      Serial_Bit = 0;
+      Inputs_Mask = 0xFFF00000;
+      break;
+    case SERIAL_STATE_SENSOR_MASK:
+      data = ~HAL_GPIO_ReadPin(COMM_FL5_GPIO_Port, COMM_FL5_Pin) & 0x01;
+      Inputs_Mask |= data << Serial_Bit;
+      
+      /* Echoes received data to PANEL_U_OUT and inverted on PANEL_R_OUT. */
+      uint8_t outputs = data ? PANEL_U_OUT : PANEL_R_OUT;
+      ShiftReg_WriteByte(&Outputs_ShiftReg, outputs);
+      
+      if(++Serial_Bit >= 20) 
+        Serial_State = SERIAL_STATE_IDLE;
+      break;
+  }
+}
+
+/**
   * @brief Return to SERIAL_STATE_IDLE if command reply timed out.
   * @retval None
   */
@@ -468,7 +508,12 @@ void Serial_Timeout_Check(void)
 {
   if(HAL_GetTick() - Serial_Init_Tick > SERIAL_TIMEOUT_TICKS)
   { 
-    /* Command reply timed out. Reset state to SERIAL_STATE_IDLE */
+    /* Command timed out. Perform rollback and reset to Serial_STATE_IDLE. */
+    
+    /* Rollback to all inputs enabled if command was SERIAL_CMD_SENSOR_MASK. */
+    if(Serial_State == SERIAL_STATE_SENSOR_MASK)
+      Inputs_Mask = 0xFFFFFFFF; 
+
     Serial_State = SERIAL_STATE_IDLE;
   } 
 }
