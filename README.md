@@ -1,6 +1,6 @@
 <p align="right">
     <a name="readme-top"></a>
-    <a href="/LICENSE.txt"><img src="https://img.shields.io/badge/license-MIT-green" /></a> <a href=""><img src="https://img.shields.io/badge/version-1.0.0-red" /></a> 
+    <a href="/LICENSE.txt"><img src="https://img.shields.io/badge/license-MIT-green" /></a> <a href=""><img src="https://img.shields.io/badge/version-1.0.0-green" /></a> 
 </p>
 <br><br>
 <p align="center">
